@@ -102,7 +102,7 @@ export const login = async (req, res) => {
             });
         }
         const user = await User.findOne({ email });
-        if(!user){
+        if (!user) {
             return res.status(401).json({
                 success: false,
                 message: "un-authorised access"
@@ -120,14 +120,14 @@ export const login = async (req, res) => {
                 message: "user not verified"
             });
         }
-        const exisitingSession = await Session.findOne({userId:user._id})
-        if(exisitingSession){
-            await Session.deleteOne({userId:user._id})
+        const exisitingSession = await Session.findOne({ userId: user._id })
+        if (exisitingSession) {
+            await Session.deleteOne({ userId: user._id })
         }
-        await Session.create({userId:user._id})
+        await Session.create({ userId: user._id })
 
-        const accessToken = jwt.sign({id:user._id},'secretKey',{expiresIn:"2d"})
-        const refreshToken = jwt.sign({id:user._id},'secretKey',{expiresIn:"30d"})
+        const accessToken = jwt.sign({ id: user._id }, 'secretKey', { expiresIn: "2d" })
+        const refreshToken = jwt.sign({ id: user._id }, 'secretKey', { expiresIn: "30d" })
 
         user.isLoggedIn = true
         await user.save()
@@ -140,6 +140,22 @@ export const login = async (req, res) => {
             user
         });
 
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+export const logout = async (req, res) => {
+    try {
+        const userId = req.userId
+        await Session.deleteMany({ userId })
+        await User.findByIdAndUpdate(userId, { isLoggedIn: false })
+        return res.status(200).json({
+            success: true,
+            message: 'logged out successfully'
+        })
     } catch (error) {
         return res.status(500).json({
             success: false,
