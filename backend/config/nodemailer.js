@@ -13,9 +13,14 @@ export const verifyEmail = async (email, token, name) => {
             from: "arshdeepchhabra1712@gmail.com" ,
             to: email,
             subject: `Hii ${name}, Email Verification`,
-            text: `
-            Your account has been successfully create with id ${email}
-            `
+            text: `Your account was created for ${email}.
+
+To verify, call POST /user/verification with either:
+- Header: Authorization: Bearer ${token}
+- Or JSON body: { "token": "${token}" }
+
+Token expires in 1 hour.
+`
         };
         await transporter.sendMail(mailConfiguration);
     } catch (error) {
