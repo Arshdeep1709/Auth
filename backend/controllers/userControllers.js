@@ -2,6 +2,7 @@ import { User } from "../models/userModels.js";
 import { Session } from "../models/sessionModels.js";
 import jwt from "jsonwebtoken";
 import { verifyEmail } from "../config/nodemailer.js";
+import { sendOtpMail } from "../config/otpMail.js";
 
 
 export const signup = async (req, res) => {
@@ -156,6 +157,93 @@ export const logout = async (req, res) => {
             success: true,
             message: 'logged out successfully'
         })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        const otp = String(Math.floor(100000 + Math.random() * 900000))
+        const expiry = new Date(Date.now() + 1 * 60 * 60 * 1000)
+
+        user.otp = otp
+        user.otpExpiry = expiry
+
+        await user.save()
+        await sendOtpMail(email, otp, user.name)
+        return res.status(200).json({
+            success: true,
+            message: 'otp sent to mail'
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+export const verifyOtp = async (req, res) => {
+    try {
+        const { otp } = req.body
+        const email = req.params.email
+        if (!otp) {
+            return res.status(400).json({
+                success: false,
+                message: 'otp requred'
+            })
+        }
+        try {
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: "user not found"
+                });
+            }
+            if (!user.otp || !user.otpExpiry) {
+                return res.status(400).json({
+                    success: false,
+                    message: "otp already verified"
+                })
+            }
+            if (user.otpExpiry < new Date()) {
+                return res.status(400).json({
+                    success: false,
+                    message: "otp expired"
+                })
+            }
+            if (otp != user.otp) {
+                return res.status(400).json({
+                    success: false,
+                    message: "invalid otp"
+                })
+            }
+
+            user.otp = null
+            user.otpExpiry = null
+
+            await user.save()
+            return res.status(200).json({
+                success: true,
+                message: 'otp verified'
+            })
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: 'internal server error'
+            })
+        }
     } catch (error) {
         return res.status(500).json({
             success: false,

@@ -32,6 +32,6 @@ export const verifyEmail = async (email, token, name) => {
         };
         await transporter.sendMail(mailConfiguration);
     } catch (error) {
-        console.log(error);
+        throw error
     }
 }
