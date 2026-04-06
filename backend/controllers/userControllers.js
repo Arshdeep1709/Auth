@@ -251,3 +251,50 @@ export const verifyOtp = async (req, res) => {
         })
     }
 }
+export const changePassword = async (req, res) => {
+    try {
+        const {newPassword,confirmPassword} = req.body
+        const email = req.params.email
+        if(!newPassword || !confirmPassword){
+            return res.status(400).json({
+                success: false,
+                message: 'all fields are requred'
+            })
+        }
+        if(newPassword !== confirmPassword){
+            return res.status(400).json({
+                success: false,
+                message: 'passwords do not match'
+            })
+        }
+        try {
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: "user not found"
+                });
+            }
+
+            const password = await newPassword
+            user.password = password
+            await user.save()
+            
+            return res.status(200).json({
+                success: true,
+                message: "password changed"
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: 'internal server error'
+            })
+        }
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
