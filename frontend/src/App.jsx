@@ -6,7 +6,8 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Verifymail from './pages/Verifymail'
 import Verify from './pages/Verify'
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,18 @@ const App = () => {
   return (
     <div>
       <RouterProvider router={router} />
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+        theme="colored"
+      />
     </div>
   )
 }

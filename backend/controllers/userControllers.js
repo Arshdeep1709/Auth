@@ -7,21 +7,27 @@ import { sendOtpMail } from "../config/otpMail.js";
 
 export const signup = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
+        const { name, email, password, confirmPassword } = req.body;
+        if (!name || !email || !password || !confirmPassword) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required"
             });
         }
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "passwords do not match"
+            })
+        }
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: "User already exists"
+                message: "Email already exists"
             });
         }
-        const newUser = await User.create({ name, email, password });
+        const newUser = await User.create({ name, email, password, confirmPassword });
         const token = jwt.sign({ userId: newUser._id }, 'secretKey', { expiresIn: "1h" });
         await verifyEmail(email, token, name);
         newUser.token = token;
@@ -253,15 +259,15 @@ export const verifyOtp = async (req, res) => {
 }
 export const changePassword = async (req, res) => {
     try {
-        const {newPassword,confirmPassword} = req.body
+        const { newPassword, confirmPassword } = req.body
         const email = req.params.email
-        if(!newPassword || !confirmPassword){
+        if (!newPassword || !confirmPassword) {
             return res.status(400).json({
                 success: false,
                 message: 'all fields are requred'
             })
         }
-        if(newPassword !== confirmPassword){
+        if (newPassword !== confirmPassword) {
             return res.status(400).json({
                 success: false,
                 message: 'passwords do not match'
@@ -279,7 +285,7 @@ export const changePassword = async (req, res) => {
             const password = await newPassword
             user.password = password
             await user.save()
-            
+
             return res.status(200).json({
                 success: true,
                 message: "password changed"

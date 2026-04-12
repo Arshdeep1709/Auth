@@ -12,13 +12,13 @@ const Verify = () => {
             const res = await fetch('http://localhost:3009/user/verification',{method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({})})  
             const data = await res.json()
             if(data.success){
-                setStatus('Email verified successfully !!!')
+                setStatus('Email verified ✅')
                 setTimeout(() => {
                     navigate('/login')
-                }, 5000);
+                }, 2000);
               }
               else{
-                setStatus('Token expired')
+                setStatus('❌Token expired')
               }
         } catch (error) {
             console.log(error);
